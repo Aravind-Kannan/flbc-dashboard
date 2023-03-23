@@ -13,10 +13,42 @@
                 "internalType": "string",
                 "name": "hashValue",
                 "type": "string"
+            },
+            {
+                "indexed": false,
+                "internalType": "string",
+                "name": "application",
+                "type": "string"
             }
         ],
         "name": "HashUpdated",
         "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "_hashValue",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getApplication",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [],
@@ -32,23 +64,15 @@
         "type": "function"
     },
     {
-        "inputs": [],
-        "name": "hashValue",
-        "outputs": [
-            {
-                "internalType": "string",
-                "name": "",
-                "type": "string"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
         "inputs": [
             {
                 "internalType": "string",
                 "name": "hash",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "application",
                 "type": "string"
             }
         ],
