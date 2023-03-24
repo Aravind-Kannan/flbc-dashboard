@@ -4,27 +4,38 @@ import "./App.css";
 import modelABI from "./ModelABI.json";
 import hashStorageLocalABI from "./HashStorageLocalABI.json";
 import hashStorageGlobalABI from "./HashStorageGlobalABI.json";
+import Logs from "./Logs";
+
+function titleCase(str) {
+  return str
+    .split("_")
+    .map((s) => s[0].toUpperCase() + s.substring(1))
+    .join(" ");
+}
 
 const DECIMAL_PART = 100_000;
 const URL = "http://localhost:7545";
 const contracts = {
   model: {
-    contractAddress: "0x3CFdd17873bD4765f4b6328deE06F692aB32E0e0",
+    contractAddress: "0x95F1929302B7C37660103Cc9f53aBeEAE71F3fB3",
     ABI: modelABI,
   },
   hashStorageLocal: {
-    contractAddress: "0x499d3cA782E12E530a1cE0A55E14181dBbd45F07",
+    contractAddress: "0x95F1929302B7C37660103Cc9f53aBeEAE71F3fB3",
     ABI: hashStorageLocalABI,
   },
   hashStorageGlobal: {
-    contractAddress: "0xaccFC90d28D3D3c3271b20675561CeDC6040F9D8",
+    contractAddress: "0x6a9364078801ECFFcEc552C4F01F05F1902F30ac",
     ABI: hashStorageGlobalABI,
   },
 };
 
 function App() {
-  const [loss, setLoss] = useState(0);
-  const [accuracy, setAccuracy] = useState(0);
+  const [modelEvents, setModelEvents] = useState([]);
+  const [hashStorageLocalEvents, setHashStorageLocalEvents] = useState([]);
+  const [hashStorageGlobalEvents, setHashStorageGlobalEvents] = useState([]);
+  const [apps, setApps] = useState(new Set());
+  const [selectedApp, setSelectedApp] = useState("all");
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -45,19 +56,11 @@ function App() {
         provider
       );
 
-      const _loss = await modelContract.getLoss();
-      const _accuracy = await modelContract.getAccuracy();
-      const _application = await modelContract.getApplication();
-      console.log(_loss, _accuracy, _application);
-      setLoss((Number(_loss) / DECIMAL_PART) * 100);
-      setAccuracy((Number(_accuracy) / DECIMAL_PART) * 100);
-
       const modelLogs = await modelContract.queryFilter(
         "ValuesUpdated",
         0,
         "latest"
       );
-
       const hashStorageLocalLogs = await hashStorageLocalContract.queryFilter(
         "HashUpdated",
         0,
@@ -69,49 +72,138 @@ function App() {
         "latest"
       );
 
+      setApps((prevState) => prevState.add("all"));
+      setModelEvents([]);
       modelLogs.forEach((log, i) => {
         const parsedLog = modelContract.interface.parseLog(log);
-        console.log("modelLogs", i);
-        console.log(
-          "Timestamp:",
-          new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
-        );
+        setApps((prevState) => prevState.add(parsedLog.args[3]));
+        setModelEvents((prevState) => [
+          ...prevState,
+          {
+            timestamp: new Date(
+              Number(parsedLog.args[0]) * 1000
+            ).toLocaleString(),
+            accuracy:
+              "Accuracy: " +
+              (
+                Math.round(
+                  (Number(parsedLog.args[1]) / DECIMAL_PART) * 100 * 100
+                ) / 100
+              ).toString() +
+              "%",
+            loss:
+              "Loss: " +
+              (
+                Math.round(
+                  (Number(parsedLog.args[2]) / DECIMAL_PART) * 100 * 100
+                ) / 100
+              ).toString() +
+              "%",
+            application: parsedLog.args[3],
+          },
+        ]);
+        console.log("modelLogs", parsedLog);
+        // console.log(
+        //   "Timestamp:",
+        //   new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
+        // );
         console.log("Accuracy:", Number(parsedLog.args[1]).toString());
         console.log("Loss:", Number(parsedLog.args[2]).toString());
-        console.log("Application:", parsedLog.args[3]);
+        // console.log("Application:", parsedLog.args[3]);
       });
 
+      setHashStorageLocalEvents([]);
       hashStorageLocalLogs.forEach((log, i) => {
         const parsedLog = hashStorageLocalContract.interface.parseLog(log);
-        console.log("hashStorageLocalLogs", i);
-        console.log(
-          "Timestamp:",
-          new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
-        );
-        console.log("Hash:", parsedLog.args[1]);
-        console.log("Application:", parsedLog.args[2]);
+        setHashStorageLocalEvents((prevState) => [
+          ...prevState,
+          {
+            timestamp: new Date(
+              Number(parsedLog.args[0]) * 1000
+            ).toLocaleString(),
+            hash: parsedLog.args[1],
+            application: parsedLog.args[2],
+          },
+        ]);
+        // console.log("hashStorageLocalLogs", i);
+        // console.log(
+        //   "Timestamp:",
+        //   new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
+        // );
+        // console.log("Hash:", parsedLog.args[1]);
+        // console.log("Application:", parsedLog.args[2]);
       });
 
+      setHashStorageGlobalEvents([]);
       hashStorageGlobalLogs.forEach((log, i) => {
         const parsedLog = hashStorageGlobalContract.interface.parseLog(log);
-        console.log("hashStorageGlobalLogs", i);
-        console.log(
-          "Timestamp:",
-          new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
-        );
-        console.log("Hash:", parsedLog.args[1]);
-        console.log("Application:", parsedLog.args[2]);
+        setHashStorageGlobalEvents((prevState) => [
+          ...prevState,
+          {
+            timestamp: new Date(
+              Number(parsedLog.args[0]) * 1000
+            ).toLocaleString(),
+            hash: parsedLog.args[1],
+            application: parsedLog.args[2],
+          },
+        ]);
+        // console.log("hashStorageGlobalLogs", i);
+        // console.log(
+        //   "Timestamp:",
+        //   new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
+        // );
+        // console.log("Hash:", parsedLog.args[1]);
+        // console.log("Application:", parsedLog.args[2]);
       });
       return () => clearInterval(interval);
     }, 1000);
   }, []);
 
+  const handleClick = (event) => {
+    setSelectedApp(Array.from(apps).sort()[Number(event.currentTarget.id)]);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Loss: {loss} %</h1>
-        <h1>Accuracy: {accuracy} %</h1>
-      </header>
+    <div className="flex items-center justify-center bg-gray-500 min-h-screen">
+      <div className="m-8 p-2 bg-black shadow-2xl rounded-lg">
+        <div className="p-2 grid place-items-center">
+          <div className="border-red border-2 rounded-lg text-white flex gap-2 p-2">
+            {Array.from(apps)
+              .sort()
+              .map((app, index) => {
+                return (
+                  <div
+                    id={index}
+                    key={index}
+                    className={
+                      app === selectedApp
+                        ? "bg-yellow-800 hover:bg-yellow-500 rounded-md p-2"
+                        : "hover:bg-yellow-500 rounded-md p-2"
+                    }
+                    onClick={handleClick}
+                  >
+                    {titleCase(app)}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        <Logs
+          data={modelEvents}
+          title={"Model Metrics"}
+          selectedApp={selectedApp}
+        />
+        <Logs
+          data={hashStorageLocalEvents}
+          title={"Hash Storage Local"}
+          selectedApp={selectedApp}
+        />
+        <Logs
+          data={hashStorageGlobalEvents}
+          title={"Hash Storage Global"}
+          selectedApp={selectedApp}
+        />
+      </div>
     </div>
   );
 }
