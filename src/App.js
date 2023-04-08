@@ -1,9 +1,7 @@
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import "./App.css";
-import modelABI from "./ModelABI.json";
-import hashStorageLocalABI from "./HashStorageLocalABI.json";
-import hashStorageGlobalABI from "./HashStorageGlobalABI.json";
+import contractsJSON from "./contracts.json";
 import Logs from "./Logs";
 
 function titleCase(str) {
@@ -15,20 +13,7 @@ function titleCase(str) {
 
 const DECIMAL_PART = 100_000;
 const URL = "http://localhost:7545";
-const contracts = {
-  model: {
-    contractAddress: "0x95F1929302B7C37660103Cc9f53aBeEAE71F3fB3",
-    ABI: modelABI,
-  },
-  hashStorageLocal: {
-    contractAddress: "0x95F1929302B7C37660103Cc9f53aBeEAE71F3fB3",
-    ABI: hashStorageLocalABI,
-  },
-  hashStorageGlobal: {
-    contractAddress: "0x6a9364078801ECFFcEc552C4F01F05F1902F30ac",
-    ABI: hashStorageGlobalABI,
-  },
-};
+const contracts = contractsJSON;
 
 function App() {
   const [modelEvents, setModelEvents] = useState([]);
@@ -103,13 +88,8 @@ function App() {
           },
         ]);
         console.log("modelLogs", parsedLog);
-        // console.log(
-        //   "Timestamp:",
-        //   new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
-        // );
         console.log("Accuracy:", Number(parsedLog.args[1]).toString());
         console.log("Loss:", Number(parsedLog.args[2]).toString());
-        // console.log("Application:", parsedLog.args[3]);
       });
 
       setHashStorageLocalEvents([]);
@@ -125,13 +105,6 @@ function App() {
             application: parsedLog.args[2],
           },
         ]);
-        // console.log("hashStorageLocalLogs", i);
-        // console.log(
-        //   "Timestamp:",
-        //   new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
-        // );
-        // console.log("Hash:", parsedLog.args[1]);
-        // console.log("Application:", parsedLog.args[2]);
       });
 
       setHashStorageGlobalEvents([]);
@@ -147,13 +120,6 @@ function App() {
             application: parsedLog.args[2],
           },
         ]);
-        // console.log("hashStorageGlobalLogs", i);
-        // console.log(
-        //   "Timestamp:",
-        //   new Date(Number(parsedLog.args[0]) * 1000).toLocaleString()
-        // );
-        // console.log("Hash:", parsedLog.args[1]);
-        // console.log("Application:", parsedLog.args[2]);
       });
       return () => clearInterval(interval);
     }, 1000);
